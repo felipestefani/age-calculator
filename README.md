@@ -40,7 +40,12 @@ Users should be able to:
 
 ### Screenshot
 
-![](./screenshot.jpg)
+![](./src/assets/gh_images/Screenshot%202023-07-29%20at%2002.14.33.png)
+![](./src/assets/gh_images/Screenshot%202023-07-29%20at%2002.14.40.png)
+![](./src/assets/gh_images/Screenshot%202023-07-29%20at%2002.14.59.png)
+![](./src/assets/gh_images/Screenshot%202023-07-29%20at%2002.15.19.png)
+![](./src/assets/gh_images/Screenshot%202023-07-29%20at%2002.15.54.png)
+![](./src/assets/gh_images/Screenshot%202023-07-29%20at%2002.16.27.png)
 
 
 ### Links
