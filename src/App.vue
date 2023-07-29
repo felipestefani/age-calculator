@@ -4,28 +4,96 @@ import { ref } from "vue";
   const day= ref('')
   const month = ref('')
   const year = ref('')
-  const dayEmpty = ref(false)
-  const monthEmpty = ref(false)
-  const yearEmpty = ref(false)
+  const dayError = ref('')
+  const monthError = ref('')
+  const yearError = ref('')
+  const date = new Date()
+  const exhibitDay = ref('--')
+  const exhibitMonth = ref('--')
+  const exhibitYear = ref('--')
+  const validDate = ref(false)
 
   const checkDaySize = () => {
-    day.value.length >= 1 ? dayEmpty.value = false : ''
-    day.value.length == 2 ? document.getElementById('month').focus() : ''
+    day.value = day.value.replace(/\D/g, '')
+    day.value.length >= 1 ? dayError.value = '' : '' 
+    day.value.length  == 2 ? document.getElementById('month').focus() : ''
   }
 
   const checkMonthSize = () => {
-    month.value.length >= 1 ? monthEmpty.value = false : ''
+    month.value = month.value.replace(/\D/g, '')
+    month.value.length >= 1 ? monthError.value = '' : ''
     month.value.length == 2 ? document.getElementById('year').focus() : ''
   }
 
   const checkYearSize = () => {
-    year.value.length >= 1 ? yearEmpty.value = false : ''
+    dayError.value == 'Must be a valid date' ? dayError.value = '' : '' 
+    year.value = year.value.replace(/\D/g, '')
+    year.value.length >= 1 ? yearError.value = '' : ''
   }
 
   const calculateAge = () => {
-    day.value.length == 0 ? dayEmpty.value = true : ''
-    month.value.length == 0 ? monthEmpty.value = true : ''
-    year.value.length == 0 ? yearEmpty.value = true : ''
+    validDate.value = false
+    exhibitDay.value = '--'
+    exhibitMonth.value = '--'
+    exhibitYear.value = '--'
+
+    day.value.length == 0 ? dayError.value = 'This field is required' : 
+    parseInt(day.value) <= 0 || parseInt(day.value) > 31 ? dayError.value = 'Must be a valid day' : ''
+
+    month.value.length == 0 ? monthError.value = 'This field is required' :
+    parseInt(month.value) <= 0 || parseInt(month.value) > 12 ? monthError.value = 'Must be a valid month' : ''
+
+    year.value.length == 0 ? yearError.value = 'This field is required' :
+    parseInt(year.value) > date.getFullYear() ? yearError.value = 'Must be in the past' : ''
+
+    if(parseInt(year.value) <= 0) {
+      monthError.value = ''
+      yearError.value = ''
+      dayError.value = 'Must be a valid date'
+    }
+
+    const birth1 = new Date(year.value, month.value-1, day.value)
+    const birth = `${year.value}-${month.value}-${day.value}`
+    console.log(birth);
+    
+    if(birth1.getDate()!=day.value || birth1.getMonth()+1 != month.value || birth1.getFullYear() != year.value) {
+      dayError.value = 'Must be a valid date'
+    } else {
+      validDate.value = true
+      useAgeCalculator(birth)
+    } 
+  }
+
+  const useAgeCalculator = birth => {
+    const birthDate = new Date(birth);
+    const currentDate = new Date();
+
+    let yearsDiff = currentDate.getFullYear() - birthDate.getFullYear();
+    const birthMonth = birthDate.getMonth();
+    const currentMonth = currentDate.getMonth();
+    const birthDay = birthDate.getDate()+1;
+    const currentDay = currentDate.getDate();
+
+    let monthsDiff = currentMonth - birthMonth;
+    let daysDiff = currentDay - birthDay;
+    console.log(currentDay);
+    console.log(birthDay);
+
+    if (daysDiff < 0) {
+      monthsDiff -= 1;
+      const prevMonthLastDay = new Date(currentDate.getFullYear(), currentMonth, 0).getDate();
+      daysDiff = prevMonthLastDay - birthDay + currentDay;
+    }
+
+    if (monthsDiff < 0) {
+      yearsDiff -= 1;
+      monthsDiff += 12;
+    }
+
+    exhibitYear.value = yearsDiff
+    exhibitMonth.value = monthsDiff
+    exhibitDay.value = daysDiff
+
   }
 
 </script>
@@ -38,22 +106,22 @@ import { ref } from "vue";
       <div class="day">
         <label for="day">
           <p class="label">Day</p>
-          <input :class="{error: dayEmpty}" id="day" type="text" placeholder="DD" maxlength="2" v-model="day" @keyup="checkDaySize">
-          <span class="validation" v-if="dayEmpty">This field is required</span>
+          <input :class="{error: dayError}" id="day" type="text" pattern="\d*" placeholder="DD" maxlength="2" v-model="day" @keyup="checkDaySize">
+          <span class="validation" v-if="dayError">{{ dayError }}</span>
         </label>
       </div>
       <div class="month">
         <label for="month">
           <p class="label">Month</p>
-          <input :class="{error: monthEmpty}" id="month" type="text" placeholder="MM" maxlength="2" v-model="month" @keyup="checkMonthSize">
-          <span class="validation" v-if="monthEmpty">This field is required</span>
+          <input :class="{error: monthError}" id="month" type="text" placeholder="MM" maxlength="2" v-model="month" @keyup="checkMonthSize">
+          <span class="validation" v-if="monthError">{{ monthError }}</span>
         </label>
       </div>    
       <div class="year">
         <label for="year">
           <p class="label year">Year</p>
-          <input :class="{error: yearEmpty}" id="year" type="text" placeholder="YYYY" maxlength="4" v-model="year" @keyup="checkYearSize">
-          <span class="validation" v-if="yearEmpty">This field is required</span>
+          <input :class="{error: yearError}" id="year" type="text" placeholder="YYYY" maxlength="4" v-model="year" @keyup="checkYearSize">
+          <span class="validation" v-if="yearError">{{ yearError }}</span>
         </label>
       </div>
     </div>  
@@ -63,9 +131,9 @@ import { ref } from "vue";
     </div>
   </form>
     <div class="display">
-      <p><span>--</span>years</p>
-      <p><span>--</span>months</p>
-      <p><span>--</span>days</p>
+      <p><span>{{  exhibitYear }}</span>years</p>
+      <p><span>{{ exhibitMonth }}</span>months</p>
+      <p><span>{{ exhibitDay }}</span>days</p>
     </div>
     <div class="attribution">
       Challenge by <a href="https://www.frontendmentor.io?ref=challenge" target="_blank">Frontend Mentor</a>. 
